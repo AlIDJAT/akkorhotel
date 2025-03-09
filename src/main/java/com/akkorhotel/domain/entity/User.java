@@ -2,7 +2,6 @@ package com.akkorhotel.domain.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Getter
@@ -28,6 +27,6 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String role;
+    private UserRole role;
 }
 

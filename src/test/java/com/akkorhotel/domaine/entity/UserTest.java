@@ -1,6 +1,7 @@
 package com.akkorhotel.domaine.entity;
 
 import com.akkorhotel.domain.entity.User;
+import com.akkorhotel.domain.entity.UserRole;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
