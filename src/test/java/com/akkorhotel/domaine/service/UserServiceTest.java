@@ -2,6 +2,7 @@ package com.akkorhotel.domaine.service;
 
 import com.akkorhotel.domain.entity.User;
 import com.akkorhotel.domain.entity.UserRole;
+import com.akkorhotel.domain.exception.UserNotFoundException;
 import com.akkorhotel.domain.repository.UserRepository;
 import com.akkorhotel.domain.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -79,11 +81,10 @@ class UserServiceTest {
 
         // Act & Assert
         assertThatThrownBy(() -> userService.getUserById(999L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(UserNotFoundException.class)
                 .hasMessage("User not found");
 
         verify(userRepository, times(1)).findById(999L);
     }
-
 
 }
