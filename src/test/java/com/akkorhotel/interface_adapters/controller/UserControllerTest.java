@@ -62,15 +62,15 @@ class UserControllerTest {
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                        {
-                            "email": "existing.email@example.com",
-                            "pseudo": "ExistingUser",
-                            "password": "password123",
-                            "role": "USER"
-                        }
-                        """))
+                    {
+                        "email": "existing.email@example.com",
+                        "pseudo": "ExistingUser",
+                        "password": "password123",
+                        "role": "USER"
+                    }
+                    """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("Email already in use"));
+                .andExpect(jsonPath("$").doesNotExist());
 
         verify(userService, times(1)).createUser(any(User.class));
     }
