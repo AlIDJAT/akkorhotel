@@ -53,4 +53,26 @@ class UserControllerTest {
 
         verify(userService, times(1)).createUser(any(User.class));
     }
+
+    @Test
+    void shouldNotCreateUserIfEmailExists() throws Exception {
+        when(userService.createUser(any(User.class)))
+                .thenThrow(new IllegalArgumentException("Email already in use"));
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                        {
+                            "email": "existing.email@example.com",
+                            "pseudo": "ExistingUser",
+                            "password": "password123",
+                            "role": "USER"
+                        }
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$").value("Email already in use"));
+
+        verify(userService, times(1)).createUser(any(User.class));
+    }
+
 }
