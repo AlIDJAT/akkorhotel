@@ -107,5 +107,28 @@ class UserServiceTest {
         verify(userRepository, times(1)).findAll();
     }
 
+    @Test
+    void shouldUpdateUserSuccessfully() {
+        // Arrange
+        Long userId = 1L;
+        User existingUser = new User(userId, "ali.djatou@gmail.com", "AliDJATOU", "password123", UserRole.USER);
+        User updatedUser = new User(userId, "ali.djatou@gmail.com", "Ali Updated", "newpassword", UserRole.USER);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
+
+        // Act
+        User result = userService.updateUser(userId, updatedUser);
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getUsername()).isEqualTo("Ali Updated");
+        assertThat(result.getPassword()).isEqualTo("newpassword");
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+
 
 }
