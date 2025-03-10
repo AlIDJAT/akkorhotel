@@ -87,4 +87,25 @@ class UserServiceTest {
         verify(userRepository, times(1)).findById(999L);
     }
 
+    @Test
+    void shouldReturnAllUsers() {
+        // Arrange
+        List<User> users = List.of(
+                new User(1L, "ali.djatou@gmail.com", "AliDJATOU", "password123", UserRole.USER),
+                new User(2L, "mohamed.ali@gmail.com", "MohamedAli", "password456", UserRole.ADMIN)
+        );
+        when(userRepository.findAll()).thenReturn(users);
+
+        // Act
+        List<User> result = userService.getAllUsers();
+
+        // Assert
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getEmail()).isEqualTo("ali.djatou@gmail.com");
+        assertThat(result.get(1).getEmail()).isEqualTo("mohamed.ali@gmail.com");
+
+        verify(userRepository, times(1)).findAll();
+    }
+
+
 }
