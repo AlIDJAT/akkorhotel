@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 class AuthServiceTest {
@@ -32,4 +33,13 @@ class AuthServiceTest {
         // Assert
         assertThat(response).isNotNull();
     }
-}
+
+    @Test
+    void shouldThrowExceptionWhenCredentialsAreInvalid() {
+        // Arrange
+        LoginRequest request = new LoginRequest("wrong.email@example.com", "wrongpassword");
+
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class, () -> authService.authenticate(request));
+
+    }
