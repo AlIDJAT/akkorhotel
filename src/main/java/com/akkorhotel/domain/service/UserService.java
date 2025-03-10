@@ -11,7 +11,12 @@ public class UserService {
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
+
     public User createUser(User user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new IllegalArgumentException("Email already in use");
+        }
         return userRepository.save(user);
     }
+
 }
