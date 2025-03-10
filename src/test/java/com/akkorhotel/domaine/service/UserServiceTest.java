@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
@@ -39,4 +40,18 @@ class UserServiceTest {
 
         verify(userRepository, times(1)).save(any(User.class));
     }
+
+    @Test
+    void shouldNotCreateUserIfEmailAlreadyExists() {
+        User user = new User(1L, "ali.djatou@gmail.com", "AliDJATOU", "password123", UserRole.USER);
+
+        when(userRepository.existsByEmail("ali.djatou@gmail.com")).thenReturn(true);
+
+        assertThatThrownBy(() -> userService.createUser(user))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Email already in use");
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
 }
