@@ -28,7 +28,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("john.doe@example.com", "password123");
 
         // Act
-        LoginResponse response = authService.authenticate();
+        LoginResponse response = authService.authenticate(request);
 
         // Assert
         assertThat(response).isNotNull();
@@ -41,5 +41,7 @@ class AuthServiceTest {
 
         // Act & Assert
         assertThrows(IllegalArgumentException.class, () -> authService.authenticate(request));
+
+    }
 
     }
