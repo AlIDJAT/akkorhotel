@@ -7,6 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -28,6 +31,10 @@ public class UserService {
                     logger.warn("User with ID {} not found", id);
                     return new UserNotFoundException("User not found");
                 });
+    }
+
+    public List<User> getAllUsers() {
+        return Collections.unmodifiableList(userRepository.findAll());
     }
 
 
