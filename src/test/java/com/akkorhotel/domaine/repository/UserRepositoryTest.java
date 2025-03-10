@@ -32,4 +32,21 @@ class UserRepositoryTest {
         assertThat(foundUser).isNotNull();
         assertThat(foundUser.get().getEmail()).isEqualTo("john.doe@example.com");
     }
+
+    @Test
+    void shouldCheckIfEmailExists() {
+        User user = User.builder()
+                .email("existing.email@example.com")
+                .pseudo("ExistingUser")
+                .password("password123")
+                .role(UserRole.USER)
+                .build();
+
+        userRepository.save(user);
+        boolean exists = userRepository.existsByEmail("existing.email@example.com");
+        assertThat(exists).isTrue();
+
+        boolean notExists = userRepository.existsByEmail("notfound@example.com");
+        assertThat(notExists).isFalse();
+    }
 }
