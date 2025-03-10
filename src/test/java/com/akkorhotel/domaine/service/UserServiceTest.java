@@ -122,7 +122,7 @@ class UserServiceTest {
 
         // Assert
         assertThat(result).isNotNull();
-        assertThat(result.getUsername()).isEqualTo("Ali Updated");
+        assertThat(result.getPseudo()).isEqualTo("Ali Updated");
         assertThat(result.getPassword()).isEqualTo("newpassword");
 
         verify(userRepository, times(1)).findById(userId);

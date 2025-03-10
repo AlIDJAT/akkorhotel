@@ -37,5 +37,16 @@ public class UserService {
         return Collections.unmodifiableList(userRepository.findAll());
     }
 
+    public User updateUser(Long id, User newUser) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        existingUser.setPseudo(newUser.getPseudo());
+        existingUser.setPassword(newUser.getPassword());
+
+        return userRepository.save(existingUser);
+    }
+
+
 
 }
