@@ -39,10 +39,15 @@ public class UserService {
 
     public User updateUser(Long id, User newUser) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        logger.info("Updating user with ID: {}", id);
 
         existingUser.setPseudo(newUser.getPseudo());
-        existingUser.setPassword(newUser.getPassword());
+
+        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
+            existingUser.setPassword(newUser.getPassword());
+        }
 
         return userRepository.save(existingUser);
     }
