@@ -10,6 +10,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -53,5 +55,35 @@ class UserServiceTest {
 
         verify(userRepository, never()).save(any(User.class));
     }
+
+    @Test
+    void shouldFindUserById() {
+        // Arrange
+        User user = new User(1L, "ali.djatou@gmail.com", "AliDJATOU", "password123", UserRole.USER);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        // Act
+        User foundUser = userService.getUserById(1L);
+
+        // Assert
+        assertThat(foundUser).isNotNull();
+        assertThat(foundUser.getEmail()).isEqualTo("ali.djatou@gmail.com");
+
+        verify(userRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUserNotFound() {
+        // Arrange
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> userService.getUserById(999L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("User not found");
+
+        verify(userRepository, times(1)).findById(999L);
+    }
+
 
 }
