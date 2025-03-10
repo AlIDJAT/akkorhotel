@@ -1,12 +1,15 @@
 package com.akkorhotel.domaine.service;
 
+import com.akkorhotel.application.dto.LoginRequest;
+import com.akkorhotel.application.dto.LoginResponse;
+import com.akkorhotel.domain.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import java.util.Optional;
-import static org.mockito.Mockito.*;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 
 class AuthServiceTest {
 
@@ -24,7 +27,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("john.doe@example.com", "password123");
 
         // Act
-        LoginResponse response = authService.authenticate(request);
+        LoginResponse response = authService.authenticate();
 
         // Assert
         assertThat(response).isNotNull();
