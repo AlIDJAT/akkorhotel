@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -29,6 +30,9 @@ class AuthServiceTest {
     private UserRepository userRepository;  //
 
     @Mock
+    private PasswordEncoder passwordEncoder;  //
+
+    @Mock
     private JwtProvider jwtProvider; //
     @BeforeEach
     void setUp() {
@@ -42,6 +46,7 @@ class AuthServiceTest {
         LoginRequest request = new LoginRequest("john.doe@example.com", "password123");
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true); // Ajouté
         when(jwtProvider.generateToken(user.getEmail())).thenReturn("mocked-jwt-token");
 
         // Act
@@ -50,7 +55,10 @@ class AuthServiceTest {
         // Assert
         assertThat(response).isNotNull();
         assertThat(response.getToken()).isEqualTo("mocked-jwt-token");
+
+        verify(userRepository, times(1)).findByEmail(request.getEmail());
     }
+
 
     @Test
     void shouldThrowExceptionWhenCredentialsAreInvalid() {
@@ -65,4 +73,5 @@ class AuthServiceTest {
         verify(userRepository, times(1)).findByEmail(request.getEmail());
     }
 
-    }
+
+}

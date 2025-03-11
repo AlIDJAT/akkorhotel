@@ -5,6 +5,7 @@ import com.akkorhotel.application.dto.LoginResponse;
 import com.akkorhotel.domain.entity.User;
 import com.akkorhotel.domain.repository.UserRepository;
 import com.akkorhotel.infrastructure.security.JwtProvider;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -13,20 +14,23 @@ import java.util.Optional;
 public class AuthService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, JwtProvider jwtProvider) {
+    public AuthService(UserRepository userRepository, JwtProvider jwtProvider, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtProvider = jwtProvider;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public LoginResponse authenticate(LoginRequest request) {
-        Optional<User> user = userRepository.findByEmail(request.getEmail());
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
-        if (user.isEmpty()) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String token = jwtProvider.generateToken(user.get().getEmail());
+        String token = jwtProvider.generateToken(user.getEmail());
         return new LoginResponse(token);
     }
 }
