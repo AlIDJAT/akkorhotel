@@ -146,5 +146,24 @@ class UserServiceTest {
                 .hasMessage("You are not allowed to access this user");
     }
 
+    @Test
+    void shouldAllowAdminToAccessAnyUser() {
+        // Arrange
+        User admin = new User(1L, "admin@gmail.com", "AdminUser", "password", UserRole.ADMIN);
+        User normalUser = new User(2L, "user@gmail.com", "NormalUser", "password", UserRole.USER);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(normalUser));
+
+        // Act
+        User foundUser = userService.getUserById(2L, admin);
+
+        // Assert
+        assertThat(foundUser).isNotNull();
+        assertThat(foundUser.getEmail()).isEqualTo("user@gmail.com");
+
+        verify(userRepository, times(1)).findById(2L);
+    }
+
+
 
 }

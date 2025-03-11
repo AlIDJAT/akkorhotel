@@ -15,10 +15,17 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Creates a new user.
+     * @param user the user to create
+     * @return the created user
+     * @throws IllegalArgumentException if the email is already in use
+     */
     public User createUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
@@ -26,6 +33,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Retrieves a user by their ID.
+     * @param id the ID of the user
+     * @return the user with the given ID
+     * @throws UserNotFoundException if the user is not found
+     */
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> {
@@ -34,32 +47,52 @@ public class UserService {
                 });
     }
 
+    /**
+     * Retrieves all users.
+     * @return an unmodifiable list of all users
+     */
     public List<User> getAllUsers() {
         return Collections.unmodifiableList(userRepository.findAll());
     }
 
+    /**
+     * Updates an existing user.
+     * @param id the ID of the user to update
+     * @param newUser the new user data
+     * @return the updated user
+     * @throws IllegalArgumentException if the user is not found
+     */
     public User updateUser(Long id, User newUser) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User existingUser = getUserById(id);
 
         logger.info("Updating user with ID: {}", id);
 
-        existingUser.setPseudo(newUser.getPseudo());
-
-        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
-            existingUser.setPassword(newUser.getPassword());
-        }
+        updateUserData(existingUser, newUser);
 
         return userRepository.save(existingUser);
     }
 
+    /**
+     * Retrieves a user by their ID if the requester has permission.
+     * @param id the ID of the user
+     * @param requester the user making the request
+     * @return the user with the given ID
+     * @throws SecurityException if the requester does not have permission
+     */
     public User getUserById(Long id, User requester) {
         return userRepository.findById(id)
-                .filter(user -> requester.getRole().equals(UserRole.ADMIN) || user.getId().equals(requester.getId()))
+                .filter(user -> hasAccess(user, requester))
                 .orElseThrow(() -> new SecurityException("You are not allowed to access this user"));
     }
 
+    private boolean hasAccess(User user, User requester) {
+        return requester.getRole().equals(UserRole.ADMIN) || user.getId().equals(requester.getId());
+    }
 
-
-
+    private void updateUserData(User existingUser, User newUser) {
+        existingUser.setPseudo(newUser.getPseudo());
+        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
+            existingUser.setPassword(newUser.getPassword());
+        }
+    }
 }
