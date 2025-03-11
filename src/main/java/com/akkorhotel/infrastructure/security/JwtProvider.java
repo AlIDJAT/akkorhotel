@@ -28,5 +28,14 @@ public class JwtProvider {
             return false;
         }
     }
+    public String extractEmailFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
 
 }
