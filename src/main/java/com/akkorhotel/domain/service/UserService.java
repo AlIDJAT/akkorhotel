@@ -1,6 +1,7 @@
 package com.akkorhotel.domain.service;
 
 import com.akkorhotel.domain.entity.User;
+import com.akkorhotel.domain.entity.UserRole;
 import com.akkorhotel.domain.exception.UserNotFoundException;
 import com.akkorhotel.domain.repository.UserRepository;
 import org.slf4j.Logger;
@@ -50,6 +51,15 @@ public class UserService {
         }
 
         return userRepository.save(existingUser);
+    }
+
+    public void getUserById(Long id, User requester) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!requester.getRole().equals(UserRole.ADMIN) && !user.getId().equals(requester.getId())) {
+            throw new SecurityException("You are not allowed to access this user");
+        }
     }
 
 
