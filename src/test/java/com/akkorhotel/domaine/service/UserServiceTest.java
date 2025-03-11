@@ -26,9 +26,16 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
+    private User normalUser;
+
+    private User adminUser;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        normalUser = new User(1L, "user@gmail.com", "User123", "password", UserRole.USER);
+        adminUser = new User(2L, "admin@gmail.com", "Admin", "password", UserRole.ADMIN);
     }
 
     @Test
@@ -129,6 +136,15 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    @Test
+    void shouldNotAllowUserToAccessAnotherUser() {
+        // Simuler que l'utilisateur essaie d'accéder à un autre utilisateur
+        when(userRepository.findById(2L)).thenReturn(Optional.of(adminUser));
+
+        assertThatThrownBy(() -> userService.getUserById(2L, normalUser))
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("You are not allowed to access this user");
+    }
 
 
 }
