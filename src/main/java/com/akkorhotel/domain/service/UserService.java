@@ -97,13 +97,8 @@ public class UserService {
     }
 
     public void updateUser(Long id, User updatedUser, User requester) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (!requester.getId().equals(id) && !requester.getRole().equals(UserRole.ADMIN)) {
-            throw new SecurityException("You are not allowed to update this user");
-        }
-
+        checkUserPermission(id, requester, "update");
+        User existingUser = getUserById(id);
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPseudo(updatedUser.getPseudo());
         existingUser.setPassword(updatedUser.getPassword());
@@ -111,14 +106,16 @@ public class UserService {
     }
 
     public void deleteUser(Long id, User requester) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (!requester.getId().equals(id) && !requester.getRole().equals(UserRole.ADMIN)) {
-            throw new SecurityException("You are not allowed to delete this user");
-        }
-
-        userRepository.delete(user);
+        checkUserPermission(id, requester, "delete");
+        userRepository.deleteById(id);
     }
+
+
+    private void checkUserPermission(Long id, User requester, String action) {
+        if (!requester.getId().equals(id) && !requester.getRole().equals(UserRole.ADMIN)) {
+            throw new SecurityException("You are not allowed to " + action + " this user");
+        }
+    }
+
 
 }
