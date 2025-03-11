@@ -35,4 +35,17 @@ class JwtProviderTest {
         assertThat(isValid).isTrue();
     }
 
+    @Test
+    void shouldExtractEmailFromValidToken() {
+        // Arrange
+        String token = jwtProvider.generateToken("john.doe@example.com");
+
+        // Act
+        String email = jwtProvider.extractEmailFromToken(token);
+
+        // Assert
+        assertThat(email).isEqualTo("john.doe@example.com");
+    }
+
+
 }
