@@ -95,4 +95,19 @@ public class UserService {
             existingUser.setPassword(newUser.getPassword());
         }
     }
+
+    public void updateUser(Long id, User updatedUser, User requester) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!requester.getId().equals(id) && !requester.getRole().equals(UserRole.ADMIN)) {
+            throw new SecurityException("You are not allowed to update this user");
+        }
+
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setPseudo(updatedUser.getPseudo());
+        existingUser.setPassword(updatedUser.getPassword());
+        userRepository.save(existingUser);
+    }
+
 }
