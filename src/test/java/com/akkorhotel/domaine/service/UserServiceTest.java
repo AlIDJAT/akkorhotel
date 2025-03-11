@@ -164,6 +164,23 @@ class UserServiceTest {
         verify(userRepository, times(1)).findById(2L);
     }
 
+    @Test
+    void shouldNotAllowUserToUpdateAnotherUser() {
+        // Arrange
+        User user1 = new User(1L, "user1@gmail.com", "UserOne", "password", UserRole.USER);
+        User user2 = new User(2L, "user2@gmail.com", "UserTwo", "password", UserRole.USER);
+        User updatedUser = new User(2L, "updated@gmail.com", "UpdatedUser", "password", UserRole.USER);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
+
+        // Act & Assert
+        assertThatThrownBy(() -> userService.updateUser(2L, updatedUser, user1))
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("You are not allowed to update this user");
+
+        verify(userRepository, never()).save(any(User.class));
+    }
+
 
 
 }
