@@ -53,14 +53,12 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    public void getUserById(Long id, User requester) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (!requester.getRole().equals(UserRole.ADMIN) && !user.getId().equals(requester.getId())) {
-            throw new SecurityException("You are not allowed to access this user");
-        }
+    public User getUserById(Long id, User requester) {
+        return userRepository.findById(id)
+                .filter(user -> requester.getRole().equals(UserRole.ADMIN) || user.getId().equals(requester.getId()))
+                .orElseThrow(() -> new SecurityException("You are not allowed to access this user"));
     }
+
 
 
 
