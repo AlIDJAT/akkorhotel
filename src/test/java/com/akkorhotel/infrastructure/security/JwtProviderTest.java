@@ -22,4 +22,17 @@ class JwtProviderTest {
         assertThat(token).isNotNull();
         assertThat(token).isNotEmpty();
     }
+
+    @Test
+    void shouldValidateTokenSuccessfully() {
+        // Arrange
+        String token = jwtProvider.generateToken("john.doe@example.com");
+
+        // Act
+        boolean isValid = jwtProvider.validateToken(token);
+
+        // Assert
+        assertThat(isValid).isTrue();
+    }
+
 }
