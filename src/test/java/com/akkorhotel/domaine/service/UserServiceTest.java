@@ -181,6 +181,23 @@ class UserServiceTest {
         verify(userRepository, never()).save(any(User.class));
     }
 
+    @Test
+    void shouldNotAllowUserToDeleteAnotherUser() {
+        // Arrange
+        User user1 = new User(1L, "user1@gmail.com", "UserOne", "password", UserRole.USER);
+        User user2 = new User(2L, "user2@gmail.com", "UserTwo", "password", UserRole.USER);
+
+        when(userRepository.findById(2L)).thenReturn(Optional.of(user2));
+
+        // Act & Assert
+        assertThatThrownBy(() -> userService.deleteUser(2L, user1))
+                .isInstanceOf(SecurityException.class)
+                .hasMessage("You are not allowed to delete this user");
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+
 
 
 }
