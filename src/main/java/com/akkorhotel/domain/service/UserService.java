@@ -110,4 +110,15 @@ public class UserService {
         userRepository.save(existingUser);
     }
 
+    public void deleteUser(Long id, User requester) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!requester.getId().equals(id) && !requester.getRole().equals(UserRole.ADMIN)) {
+            throw new SecurityException("You are not allowed to delete this user");
+        }
+
+        userRepository.delete(user);
+    }
+
 }
