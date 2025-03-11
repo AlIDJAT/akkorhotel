@@ -43,7 +43,8 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                            {
+
+                                {
                                 "email": "john.doe@example.com",
                                 "password": "password123"
                             }
@@ -53,4 +54,27 @@ class AuthControllerTest {
 
         verify(authService, times(1)).authenticate(any(LoginRequest.class));
     }
+
+    @Test
+    void shouldReturnUnauthorizedWhenPasswordIsIncorrect() throws Exception {
+
+        when(authService.authenticate(any(LoginRequest.class)))
+                .thenThrow(new IllegalArgumentException("Invalid credentials"));
+
+        mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                {
+                    "email": "john.doe@example.com",
+                    "password": "wrongpassword"
+                }
+                """))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Invalid credentials"));
+    }
+
 }
+
+
+
+
