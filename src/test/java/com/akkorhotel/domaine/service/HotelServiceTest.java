@@ -1,5 +1,8 @@
 package com.akkorhotel.domaine.service;
 
+import com.akkorhotel.domain.entity.Hotel;
+import com.akkorhotel.domain.repository.HotelRepository;
+import com.akkorhotel.domain.service.HotelService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
