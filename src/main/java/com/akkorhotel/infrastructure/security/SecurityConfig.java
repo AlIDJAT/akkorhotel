@@ -1,12 +1,13 @@
 package com.akkorhotel.infrastructure.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,7 +23,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -36,19 +37,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // Désactive CSRF pour simplifier les tests
+                .csrf(AbstractHttpConfigurer::disable) // Désactive CSRF pour les API REST
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/public/**").permitAll() // Autoriser les routes publiques
-                        .requestMatchers("/users").hasAuthority("ADMIN") // Restriction sur /users
+                        .requestMatchers("/auth/login", "/public/**").permitAll()   // Permettre l'accès sans authentification
+                        .requestMatchers(HttpMethod.GET, "/hotels/**").permitAll()   // GET sur /hotels est public
+                        .requestMatchers(HttpMethod.POST, "/hotels").hasRole("ADMIN") // Seuls les admins peuvent créer des hôtels
+                        .requestMatchers(HttpMethod.PUT, "/hotels/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/hotels/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider()) // Utilise le provider
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Ajoute le filtre JWT
-                .httpBasic(Customizer.withDefaults());
+                .authenticationProvider(authenticationProvider()) // Utilise l'authentification JWT
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Unauthorized: Please authenticate first as admin.\"}");
+                        })
+                );
 
         return http.build();
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

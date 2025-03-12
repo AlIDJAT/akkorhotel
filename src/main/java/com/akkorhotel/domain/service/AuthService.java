@@ -30,7 +30,10 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
-        String token = jwtProvider.generateToken(user.getEmail());
+        // 🔥 Ajouter le rôle dans le token
+        String token = jwtProvider.generateToken(user.getEmail(), user.getRole().name());
+
         return new LoginResponse(token);
     }
+
 }

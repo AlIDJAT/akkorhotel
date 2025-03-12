@@ -28,4 +28,13 @@ public class Hotel {
 
     @ElementCollection
     private List<String> pictureList;
+
+    @Version
+    @Column(nullable = false)
+    private Integer version;
+
+    // Constructeur sans version pour les nouveaux objets
+    public Hotel(Long id, String name, String location, String description, List<String> pictureList) {
+        this(id, name, location, description, pictureList, 0);
+    }
 }

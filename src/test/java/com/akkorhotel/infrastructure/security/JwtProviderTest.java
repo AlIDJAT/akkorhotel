@@ -16,7 +16,7 @@ class JwtProviderTest {
     @Test
     void shouldGenerateValidJwtToken() {
         // Act
-        String token = jwtProvider.generateToken("john.doe@example.com");
+        String token = jwtProvider.generateToken("john.doe@example.com", "USER"); // 🔥 Ajouter le rôle
 
         // Assert
         assertThat(token).isNotNull();
@@ -26,7 +26,7 @@ class JwtProviderTest {
     @Test
     void shouldValidateTokenSuccessfully() {
         // Arrange
-        String token = jwtProvider.generateToken("john.doe@example.com");
+        String token = jwtProvider.generateToken("john.doe@example.com", "USER");
 
         // Act
         boolean isValid = jwtProvider.validateToken(token);
@@ -38,7 +38,7 @@ class JwtProviderTest {
     @Test
     void shouldExtractEmailFromValidToken() {
         // Arrange
-        String token = jwtProvider.generateToken("john.doe@example.com");
+        String token = jwtProvider.generateToken("john.doe@example.com", "USER");
 
         // Act
         String email = jwtProvider.extractEmailFromToken(token);
@@ -47,5 +47,15 @@ class JwtProviderTest {
         assertThat(email).isEqualTo("john.doe@example.com");
     }
 
+    @Test
+    void shouldExtractRoleFromValidToken() {
+        // Arrange
+        String token = jwtProvider.generateToken("john.doe@example.com", "USER");
 
+        // Act
+        String role = jwtProvider.extractRoleFromToken(token); // 🔥 Ajouter ce test
+
+        // Assert
+        assertThat(role).isEqualTo("USER");
+    }
 }

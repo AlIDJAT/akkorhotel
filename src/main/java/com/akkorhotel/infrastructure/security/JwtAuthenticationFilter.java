@@ -26,23 +26,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
         String token = extractToken(request);
-        if (token != null && jwtProvider.validateToken(token)) {
-            String email = jwtProvider.extractEmailFromToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities()
-            );
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (token == null || !jwtProvider.validateToken(token)) {
+            logger.warn("No valid JWT token found");
+            chain.doFilter(request, response);
+            return;
         }
-        filterChain.doFilter(request, response);
+
+        String email = jwtProvider.extractEmailFromToken(token);
+        String role = jwtProvider.extractRoleFromToken(token); // 🔥 Extraction du rôle
+
+        logger.info("Extracted from JWT - Email: " + email + ", Role: " + role);
+
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities()
+        );
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        chain.doFilter(request, response);
     }
+
 
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

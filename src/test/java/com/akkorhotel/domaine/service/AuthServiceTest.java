@@ -3,6 +3,7 @@ package com.akkorhotel.domaine.service;
 import com.akkorhotel.application.dto.LoginRequest;
 import com.akkorhotel.application.dto.LoginResponse;
 import com.akkorhotel.domain.entity.User;
+import com.akkorhotel.domain.entity.UserRole;
 import com.akkorhotel.domain.repository.UserRepository;
 import com.akkorhotel.domain.service.AuthService;
 import com.akkorhotel.infrastructure.security.JwtProvider;
@@ -42,12 +43,15 @@ class AuthServiceTest {
     @Test
     void shouldReturnJwtWhenCredentialsAreValid() {
         // Arrange
-        User user = new User(1L, "john.doe@example.com", "JohnDoe", "hashedpassword", USER);
+        User user = new User(1L, "john.doe@example.com", "JohnDoe", "hashedpassword", UserRole.USER);
         LoginRequest request = new LoginRequest("john.doe@example.com", "password123");
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true); // Ajouté
-        when(jwtProvider.generateToken(user.getEmail())).thenReturn("mocked-jwt-token");
+        when(passwordEncoder.matches(request.getPassword(), user.getPassword())).thenReturn(true);
+
+        // 🔥 Adapter le mock pour inclure le rôle dans le JWT
+        when(jwtProvider.generateToken(user.getEmail(), user.getRole().name()))
+                .thenReturn("mocked-jwt-token");
 
         // Act
         LoginResponse response = authService.authenticate(request);
@@ -57,7 +61,9 @@ class AuthServiceTest {
         assertThat(response.getToken()).isEqualTo("mocked-jwt-token");
 
         verify(userRepository, times(1)).findByEmail(request.getEmail());
+        verify(jwtProvider, times(1)).generateToken(user.getEmail(), user.getRole().name()); // Vérifier qu'on appelle bien la méthode avec le rôle
     }
+
 
 
     @Test

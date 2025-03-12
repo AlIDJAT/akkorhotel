@@ -12,12 +12,13 @@ import java.util.Date;
 public class JwtProvider {
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    public String generateToken(String email) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", role)  // 🔥 Ajouter le rôle dans le token
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 jour
-                .signWith(key)
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24)) // 24h
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -34,6 +35,9 @@ public class JwtProvider {
         return parseClaims(token).getSubject();
     }
 
+    public String extractRoleFromToken(String token) {
+        return parseClaims(token).get("role", String.class); // 🔥 Extrait le rôle depuis le token
+    }
 
     private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
