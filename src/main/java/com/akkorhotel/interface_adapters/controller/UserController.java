@@ -2,37 +2,59 @@ package com.akkorhotel.interface_adapters.controller;
 
 import com.akkorhotel.domain.entity.User;
 import com.akkorhotel.domain.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
-        logger.info("UserController loaded!");
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
             User createdUser = userService.createUser(user);
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 
-    @GetMapping
-    @PreAuthorize("hasAuthority('ADMIN')") // Seuls les admins peuvent accéder
-    public ResponseEntity<String> getUsers() {
-        return ResponseEntity.ok("List of users");
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id, @AuthenticationPrincipal User requester) {
+        try {
+            return ResponseEntity.ok(userService.getUserById(id, requester));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
     }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user, @AuthenticationPrincipal User requester) {
+        try {
+            return ResponseEntity.ok(userService.updateUser(id, user, requester));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, @AuthenticationPrincipal User requester) {
+        try {
+            userService.deleteUser(id, requester);
+            return ResponseEntity.noContent().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
 }

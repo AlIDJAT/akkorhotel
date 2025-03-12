@@ -6,7 +6,9 @@ import com.akkorhotel.domain.exception.UserNotFoundException;
 import com.akkorhotel.domain.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,30 +16,34 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
-     * Creates a new user.
-     * @param user the user to create
-     * @return the created user
-     * @throws IllegalArgumentException if the email is already in use
+     * Crée un nouvel utilisateur.
+     * @param user les informations de l'utilisateur
+     * @return l'utilisateur créé
+     * @throws IllegalArgumentException si l'email est déjà utilisé
      */
     public User createUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
         }
+        // Hash du mot de passe
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
     /**
-     * Retrieves a user by their ID.
-     * @param id the ID of the user
-     * @return the user with the given ID
-     * @throws UserNotFoundException if the user is not found
+     * Récupère un utilisateur par son ID.
+     * @param id l'ID de l'utilisateur
+     * @return l'utilisateur trouvé
+     * @throws UserNotFoundException si l'utilisateur n'existe pas
      */
     public User getUserById(Long id) {
         return userRepository.findById(id)
@@ -48,74 +54,78 @@ public class UserService {
     }
 
     /**
-     * Retrieves all users.
-     * @return an unmodifiable list of all users
+     * Récupère un utilisateur si le demandeur a la permission.
+     * @param id l'ID de l'utilisateur cible
+     * @param requester l'utilisateur faisant la requête
+     * @return l'utilisateur trouvé
+     * @throws SecurityException si le demandeur n'a pas la permission
      */
-    public List<User> getAllUsers() {
-        return Collections.unmodifiableList(userRepository.findAll());
+    public User getUserById(Long id, User requester) {
+        User user = getUserById(id);
+        if (hasAccess(user, requester)) {
+            return user;
+        }
+        throw new SecurityException("You are not allowed to access this user");
     }
 
     /**
-     * Updates an existing user.
-     * @param id the ID of the user to update
-     * @param newUser the new user data
-     * @return the updated user
-     * @throws IllegalArgumentException if the user is not found
+     * Récupère tous les utilisateurs (uniquement pour les admins).
+     * @return la liste des utilisateurs
      */
-    public User updateUser(Long id, User newUser) {
+    public List<User> getAllUsers(User requester) {
+        if (requester.getRole() == UserRole.ADMIN) {
+            return Collections.unmodifiableList(userRepository.findAll());
+        }
+        throw new SecurityException("Only admins can view all users.");
+    }
+
+    /**
+     * Met à jour un utilisateur en vérifiant les permissions.
+     * @param id l'ID de l'utilisateur à modifier
+     * @param updatedUser les nouvelles données
+     * @param requester l'utilisateur faisant la requête
+     * @return l'utilisateur mis à jour
+     * @throws SecurityException si le demandeur n'a pas la permission
+     */
+    @Transactional
+    public User updateUser(Long id, User updatedUser, User requester) {
+        checkUserPermission(id, requester, "update");
+
         User existingUser = getUserById(id);
 
-        logger.info("Updating user with ID: {}", id);
-
-        updateUserData(existingUser, newUser);
+        if (updatedUser.getEmail() != null) existingUser.setEmail(updatedUser.getEmail());
+        if (updatedUser.getPseudo() != null) existingUser.setPseudo(updatedUser.getPseudo());
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
 
         return userRepository.save(existingUser);
     }
 
     /**
-     * Retrieves a user by their ID if the requester has permission.
-     * @param id the ID of the user
-     * @param requester the user making the request
-     * @return the user with the given ID
-     * @throws SecurityException if the requester does not have permission
+     * Supprime un utilisateur en vérifiant les permissions.
+     * @param id l'ID de l'utilisateur à supprimer
+     * @param requester l'utilisateur faisant la requête
+     * @throws SecurityException si le demandeur n'a pas la permission
      */
-    public User getUserById(Long id, User requester) {
-        return userRepository.findById(id)
-                .filter(user -> hasAccess(user, requester))
-                .orElseThrow(() -> new SecurityException("You are not allowed to access this user"));
-    }
-
-    private boolean hasAccess(User user, User requester) {
-        return requester.getRole().equals(UserRole.ADMIN) || user.getId().equals(requester.getId());
-    }
-
-    private void updateUserData(User existingUser, User newUser) {
-        existingUser.setPseudo(newUser.getPseudo());
-        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
-            existingUser.setPassword(newUser.getPassword());
-        }
-    }
-
-    public void updateUser(Long id, User updatedUser, User requester) {
-        checkUserPermission(id, requester, "update");
-        User existingUser = getUserById(id);
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPseudo(updatedUser.getPseudo());
-        existingUser.setPassword(updatedUser.getPassword());
-        userRepository.save(existingUser);
-    }
-
     public void deleteUser(Long id, User requester) {
         checkUserPermission(id, requester, "delete");
         userRepository.deleteById(id);
     }
 
+    /**
+     * Vérifie si un utilisateur a accès à un autre utilisateur.
+     */
+    private boolean hasAccess(User user, User requester) {
+        return requester.getRole().equals(UserRole.ADMIN) || user.getId().equals(requester.getId());
+    }
 
+    /**
+     * Vérifie si le demandeur a la permission d'effectuer une action.
+     */
     private void checkUserPermission(Long id, User requester, String action) {
         if (!requester.getId().equals(id) && !requester.getRole().equals(UserRole.ADMIN)) {
             throw new SecurityException("You are not allowed to " + action + " this user");
         }
     }
-
-
 }
