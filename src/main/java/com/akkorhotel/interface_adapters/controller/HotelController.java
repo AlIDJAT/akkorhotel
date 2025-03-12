@@ -1,5 +1,6 @@
 package com.akkorhotel.interface_adapters.controller;
 
+import com.akkorhotel.application.dto.HotelResponse;
 import com.akkorhotel.domain.entity.Hotel;
 import com.akkorhotel.domain.exception.HotelNotFoundException;
 import com.akkorhotel.domain.service.HotelService;
@@ -20,8 +21,8 @@ public class HotelController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Hotel> getHotelById(@PathVariable Long id) {
-        return ResponseEntity.ok(hotelService.getHotelById(id));
+    public ResponseEntity<HotelResponse> getHotelById(@PathVariable Long id) {
+        return ResponseEntity.ok(HotelResponse.fromEntity(hotelService.getHotelById(id)));
     }
 
     @ExceptionHandler(HotelNotFoundException.class)
