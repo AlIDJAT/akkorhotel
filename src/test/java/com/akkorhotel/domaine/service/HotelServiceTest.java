@@ -1,6 +1,7 @@
 package com.akkorhotel.domaine.service;
 
 import com.akkorhotel.domain.entity.Hotel;
+import com.akkorhotel.domain.exception.HotelNotFoundException;
 import com.akkorhotel.domain.repository.HotelRepository;
 import com.akkorhotel.domain.service.HotelService;
 import jakarta.persistence.EntityNotFoundException;
@@ -62,7 +63,7 @@ class HotelServiceTest {
         when(hotelRepository.findById(hotelId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> hotelService.getHotelById(hotelId));
+        assertThrows(HotelNotFoundException.class, () -> hotelService.getHotelById(hotelId));
     }
 
 }
