@@ -24,6 +24,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Définir JAVA_HOME
+        run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
+
       - name: Construire le projet avec Maven
         run: mvn clean install
 
@@ -48,7 +51,7 @@ jobs:
           projectBaseDir: "."
 
       - name: Afficher un message si tout est OK
-        run: echo "✅ Backend build & tests réussis"
+        run: echo "Backend build & tests réussis"
 
   deploy:
     runs-on: ubuntu-latest
