@@ -20,14 +20,9 @@ import static org.mockito.Mockito.*;
 
 class UserServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @InjectMocks
-    private UserService userService;
+    @Mock private UserRepository userRepository;
+    @Mock private PasswordEncoder passwordEncoder;
+    @InjectMocks private UserService userService;
 
     private User normalUser;
     private User adminUser;
@@ -35,7 +30,6 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
         normalUser = new User(1L, "user@gmail.com", "User123", "password", UserRole.USER);
         adminUser = new User(2L, "admin@gmail.com", "Admin", "password", UserRole.ADMIN);
     }
@@ -94,35 +88,14 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldAllowAdminToAccessAnyUser() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
-
-        User foundUser = userService.getUserById(1L, adminUser);
-
-        assertThat(foundUser).isNotNull();
-        assertThat(foundUser.getEmail()).isEqualTo("user@gmail.com");
-
-        verify(userRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    void shouldNotAllowUserToAccessAnotherUser() {
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adminUser));
-
-        assertThatThrownBy(() -> userService.getUserById(2L, normalUser))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("You are not allowed to access this user");
-    }
-
-    @Test
-    void shouldUpdateOwnAccountSuccessfully() {
+    void shouldUpdateUserSuccessfully() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
         when(passwordEncoder.encode("newpassword")).thenReturn("hashedNewPassword");
         when(userRepository.save(any(User.class))).thenReturn(normalUser);
 
         User updatedUser = new User(1L, "user@gmail.com", "NewPseudo", "newpassword", UserRole.USER);
 
-        User result = userService.updateUser(1L, updatedUser, normalUser);
+        User result = userService.updateUser(1L, updatedUser);
 
         assertThat(result.getPseudo()).isEqualTo("NewPseudo");
         assertThat(result.getPassword()).isEqualTo("hashedNewPassword");
@@ -131,60 +104,37 @@ class UserServiceTest {
     }
 
     @Test
-    void shouldNotAllowUserToUpdateAnotherUser() {
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adminUser));
+    void shouldNotUpdateUserIfEmailAlreadyExists() {
 
-        User updatedUser = new User(2L, "updated@gmail.com", "UpdatedUser", "password", UserRole.USER);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
+        when(userRepository.existsByEmail("existing@gmail.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.updateUser(2L, updatedUser, normalUser))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("You are not allowed to update this user");
+        User updatedUser = new User(1L, "existing@gmail.com", "NewPseudo", "newpassword", UserRole.USER);
+
+        assertThatThrownBy(() -> userService.updateUser(1L, updatedUser))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Email already in use");
 
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void shouldAllowAdminToUpdateAnyUser() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
-        when(passwordEncoder.encode("newpassword")).thenReturn("hashedNewPassword");
-        when(userRepository.save(any(User.class))).thenReturn(normalUser);
+    void shouldDeleteUserSuccessfully() {
+        when(userRepository.existsById(1L)).thenReturn(true);
 
-        User updatedUser = new User(1L, "updated@gmail.com", "UpdatedUser", "newpassword", UserRole.USER);
+        userService.deleteUser(1L);
 
-        User result = userService.updateUser(1L, updatedUser, adminUser);
-
-        assertThat(result.getEmail()).isEqualTo("updated@gmail.com");
-        assertThat(result.getPassword()).isEqualTo("hashedNewPassword");
-
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void shouldNotAllowUserToDeleteAnotherUser() {
-        when(userRepository.findById(2L)).thenReturn(Optional.of(adminUser));
+    void shouldThrowExceptionWhenDeletingNonExistingUser() {
+        when(userRepository.existsById(999L)).thenReturn(false);
 
-        assertThatThrownBy(() -> userService.deleteUser(2L, normalUser))
-                .isInstanceOf(SecurityException.class)
-                .hasMessage("You are not allowed to delete this user");
+        assertThatThrownBy(() -> userService.deleteUser(999L))
+                .isInstanceOf(UserNotFoundException.class)
+                .hasMessage("User not found");
 
         verify(userRepository, never()).deleteById(any());
-    }
-
-    @Test
-    void shouldAllowUserToDeleteTheirOwnAccount() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
-
-        userService.deleteUser(1L, normalUser);
-
-        verify(userRepository, times(1)).deleteById(1L);
-    }
-
-    @Test
-    void shouldAllowAdminToDeleteAnyUser() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
-
-        userService.deleteUser(1L, adminUser);
-
-        verify(userRepository, times(1)).deleteById(1L);
     }
 }

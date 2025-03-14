@@ -96,30 +96,36 @@
 
 	<build>
 		<plugins>
+			<!-- Plugin de compilation Maven avec le bon support Lombok -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>  <!-- Ajout de la version pour éviter les conflits -->
 				<configuration>
+					<source>17</source> <!-- Assure-toi que c'est bien la version de Java que tu utilises -->
+					<target>17</target>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>1.18.36</version> <!-- Ajout explicite de la version -->
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
+
+			<!-- Plugin Spring Boot -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
+						<!-- S'assurer que Lombok n'est pas exclu ! -->
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<!-- Plugin de gestion des ressources -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -128,7 +134,9 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
+
 
 </project>

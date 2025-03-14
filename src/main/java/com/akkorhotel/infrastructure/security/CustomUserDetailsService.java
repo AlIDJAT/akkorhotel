@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
 
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -26,11 +26,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         logger.info("User found: {}, Role: {}", user.getEmail(), user.getRole());
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .authorities("ROLE_" + user.getRole().name()) //
-                .build();
+        // Retourne une instance de MyDomainUserDetails qui encapsule votre entité User
+        return new MyDomainUserDetails(user);
     }
+
 
 }

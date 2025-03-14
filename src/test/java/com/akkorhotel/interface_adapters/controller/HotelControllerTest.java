@@ -5,6 +5,7 @@ import com.akkorhotel.domain.exception.HotelNotFoundException;
 import com.akkorhotel.domain.service.HotelService;
 import com.akkorhotel.infrastructure.security.JwtProvider;
 import com.akkorhotel.infrastructure.security.SecurityConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,6 +39,12 @@ class HotelControllerTest {
     // Le service est injecté via notre configuration de test
     @Autowired
     private HotelService hotelService;
+
+    @BeforeEach
+    void resetMocks() {
+        // Réinitialise toutes les interactions enregistrées sur le mock
+        Mockito.reset(hotelService);
+    }
 
     @Test
     @WithMockUser(roles = "ADMIN") // Simule un utilisateur ADMIN

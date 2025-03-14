@@ -33,7 +33,11 @@ public class AuthService {
         // 🔥 Ajouter le rôle dans le token
         String token = jwtProvider.generateToken(user.getEmail(), user.getRole().name());
 
-        return new LoginResponse(token);
+        return new LoginResponse(
+                token,
+                user.getRole().name(), // ou user.getRole().toString()
+                user.getPseudo()       // selon votre attribut user
+        );
     }
 
 }

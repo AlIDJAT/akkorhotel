@@ -38,7 +38,6 @@ public class HotelController {
     @PreAuthorize("hasRole('ADMIN')") // Seuls les admins peuvent créer un hôtel
     public ResponseEntity<Hotel> createHotel(@RequestBody Hotel hotel) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println(">>> createHotel auth.getAuthorities() = " + auth.getAuthorities());
         return ResponseEntity.status(HttpStatus.CREATED).body(hotelService.createHotel(hotel));
     }
 

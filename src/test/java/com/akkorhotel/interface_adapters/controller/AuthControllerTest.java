@@ -38,7 +38,7 @@ class AuthControllerTest {
     @Test
     void shouldAuthenticateUserAndReturnJwt() throws Exception {
         // Arrange
-        LoginResponse response = new LoginResponse("mocked-jwt-token");
+        LoginResponse response = new LoginResponse("mocked-jwt-token","USER","John Doe");
 
         when(authService.authenticate(any(LoginRequest.class))).thenReturn(response);
 
