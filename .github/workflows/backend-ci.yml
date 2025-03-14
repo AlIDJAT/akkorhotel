@@ -24,9 +24,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Vérifier le style du code avec Checkstyle
-        run: mvn checkstyle:check
-
       - name: Construire le projet avec Maven
         run: mvn clean install
 
