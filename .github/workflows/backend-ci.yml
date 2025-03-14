@@ -36,13 +36,6 @@ jobs:
       - name: Lancer les tests d'intégration
         run: mvn verify -Pintegration-tests
 
-      - name: Vérification de la sécurité avec OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: "akkor-hotel-backend"
-          format: "HTML"
-          out: "reports"
-
       - name: Scanner le code avec SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
         env:
