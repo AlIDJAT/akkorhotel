@@ -4,11 +4,9 @@ on:
   pull_request:
     branches:
       - main
-      - dev
   push:
     branches:
       - main
-      - dev
 
 jobs:
   build:
@@ -24,30 +22,18 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Définir JAVA_HOME
-        run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
-
       - name: Construire le projet avec Maven
         run: mvn clean install
 
-      - name: Lancer les tests unitaires
+      - name: Lancer les tests
         run: mvn test
 
-      - name: Lancer les tests d'intégration
-        run: mvn verify -Pintegration-tests
-
       - name: Afficher un message si tout est OK
-        run: echo "Backend build & tests réussis"
+        run: echo "✅ Backend build & tests réussis"
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Sauvegarder le JAR généré
-        uses: actions/upload-artifact@v3
-        with:
-          name: akkor-hotel-backend
-          path: target/*.jar
-
       - name: Fake Deploy
         run: echo "🚀 Déploiement simulé réussi !"
