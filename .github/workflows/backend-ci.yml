@@ -24,11 +24,31 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Vérifier le style du code avec Checkstyle
+        run: mvn checkstyle:check
+
       - name: Construire le projet avec Maven
         run: mvn clean install
 
-      - name: Lancer les tests
+      - name: Lancer les tests unitaires
         run: mvn test
+
+      - name: Lancer les tests d'intégration
+        run: mvn verify -Pintegration-tests
+
+      - name: Vérification de la sécurité avec OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "akkor-hotel-backend"
+          format: "HTML"
+          out: "reports"
+
+      - name: Scanner le code avec SonarCloud
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: "."
 
       - name: Afficher un message si tout est OK
         run: echo "✅ Backend build & tests réussis"
@@ -37,5 +57,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Sauvegarder le JAR généré
+        uses: actions/upload-artifact@v3
+        with:
+          name: akkor-hotel-backend
+          path: target/*.jar
+
       - name: Fake Deploy
         run: echo "🚀 Déploiement simulé réussi !"
