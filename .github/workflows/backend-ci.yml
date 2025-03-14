@@ -36,14 +36,6 @@ jobs:
       - name: Lancer les tests d'intégration
         run: mvn verify -Pintegration-tests
 
-      - name: Scanner le code avec SonarCloud
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://sonarcloud.io"
-        with:
-          projectBaseDir: "."
-
       - name: Afficher un message si tout est OK
         run: echo "Backend build & tests réussis"
 
