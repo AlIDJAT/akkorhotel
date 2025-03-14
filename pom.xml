@@ -125,7 +125,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- Plugin de gestion des ressources  -->
+			<!-- Plugin de gestion des ressources -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
